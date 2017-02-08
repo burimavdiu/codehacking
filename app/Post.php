@@ -8,7 +8,7 @@ class Post extends Model
 {
     //
     protected $fillable=['photo_id','category_id','title','body'];
-
+    //protected $guarded = ['id', '_token'];
     public function photo(){
         return $this->belongsTo('App\Photo');
     }

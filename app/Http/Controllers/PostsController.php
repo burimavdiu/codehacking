@@ -9,6 +9,8 @@ use App\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Session;
 
 class PostsController extends Controller
 {
@@ -83,6 +85,11 @@ class PostsController extends Controller
     public function edit($id)
     {
         //
+
+        $post=Post::findOrFail($id);
+        $categories=Category::lists('name','id')->all();
+        //return $post;
+        return view('admin.posts.edit', compact('post','categories'));
     }
 
     /**
@@ -95,6 +102,18 @@ class PostsController extends Controller
     public function update(Request $request, $id)
     {
         //
+
+        $data_post= $request->all();
+
+        if($file= $request->file('photo_id')){
+            $name=time() . $file->getClientOriginalName();
+            $file->move('images',$name);
+            $photo=Photo::create(['file'=>$name]);
+            $data_post['photo_id']=$photo->id;
+        }
+        Auth::user()->posts()->whereId($id)->first()->update($data_post);
+        return redirect('admin/posts');
+
     }
 
     /**
@@ -106,5 +125,14 @@ class PostsController extends Controller
     public function destroy($id)
     {
         //
+        $post=Post::findOrFail($id);
+        unlink(public_path() . $post->photo->file);
+        $post->photo->delete();
+
+        $post->delete();
+        Session::flash("deleted_post","The post has been deketed ");
+
+        return redirect('admin/posts');
+
     }
 }
